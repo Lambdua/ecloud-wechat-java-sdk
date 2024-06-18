@@ -11,6 +11,9 @@ import com.lambdua.ecloud.common.ApiResult;
 import com.lambdua.ecloud.download.GetImgRequest;
 import com.lambdua.ecloud.login.Address;
 import com.lambdua.ecloud.login.Contact;
+import com.lambdua.ecloud.receive.DetailReceiveData;
+import com.lambdua.ecloud.receive.MessageResult;
+import com.lambdua.ecloud.receive.MessageType;
 import com.lambdua.ecloud.send.SendRequest;
 import com.lambdua.ecloud.send.SendResult;
 import okhttp3.ConnectionPool;
@@ -20,7 +23,6 @@ import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -75,6 +77,38 @@ public class ECloudService {
     public SendResult sendTextMsg(SendRequest sendRequest) {
         return execute(client.sendText(sendRequest)).getData();
     }
+
+    /**
+     * 发送的消息转换为接收的消息
+     */
+    public MessageResult sendResultToMessageResult(SendResult result, SendRequest request) {
+        MessageResult msg = new MessageResult();
+        DetailReceiveData detail = new DetailReceiveData();
+        msg.setWcId(result.wcId());
+        if (request.wcId().contains("@chatroom")) {
+            msg.setMessageType(MessageType.GROUP_TEXT);
+            detail.setFromGroup(request.wcId());
+        } else {
+            msg.setMessageType(MessageType.PRIVATE_TEXT);
+            detail.setToUser(request.wcId());
+        }
+        msg.setData(detail);
+        detail.setSelf(true);
+        detail.setContent(request.content());
+        detail.setFromUser(result.wcId());
+        detail.setMsgId(result.msgId());
+        detail.setNewMsgId(result.newMsgId());
+        detail.setTimestamp(result.createTime());
+        detail.setWId(request.wId());
+        detail.setType(result.type());
+        detail.setUrl(request.path());
+        if (request.at() != null) {
+            String[] at = request.at().split(",");
+            detail.setAtList(List.of(at));
+        }
+        return msg;
+    }
+
 
 
     /**
