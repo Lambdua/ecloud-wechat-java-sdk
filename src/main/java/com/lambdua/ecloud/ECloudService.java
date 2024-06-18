@@ -58,12 +58,11 @@ public class ECloudService {
 
 
     /**
-     *
-     * @param wId 登录实例id
+     * @param wId  登录实例id
      * @param wcId 好友微信id/群id,多个好友/群 以","分隔每次最多支持20个微信/群号,记得本接口随机间隔300ms-1500ms，频繁调用容易导致掉线
      */
     public List<Contact> getContactList(String wId, String wcId) {
-        return execute(client.getContact(Map.of("wId",wId,"wcId",wcId))).getData();
+        return execute(client.getContact(Map.of("wId", wId, "wcId", wcId))).getData();
     }
 
     /*--------------------------login相关-------------------------*/
@@ -77,6 +76,23 @@ public class ECloudService {
         return execute(client.sendText(sendRequest)).getData();
     }
 
+
+    /**
+     * @param url 语音url （silk/amr 格式,可以下载消息中的语音返回silk格式）
+     * @param length 语音时长（回调消息xml数据中的voicelength字段）
+     * @return com.lambdua.ecloud.send.SendResult
+     * @author liangtao
+     * @date 2024/6/18
+     **/
+    public SendResult sendVoiceMsg(String wId, String wcId, String url, Integer length) {
+        return execute(client.sendVoice(Map.of(
+                "wId", wId,
+                "wcId", wcId,
+                "content", url,
+                "length", length
+        ))).getData();
+
+    }
     /*--------------------------发送消息相关-------------------------*/
 
 
@@ -144,7 +160,6 @@ public class ECloudService {
     }
 
     /*--------------------------群聊相关-------------------------*/
-
 
 
     public static ObjectMapper defaultObjectMapper() {

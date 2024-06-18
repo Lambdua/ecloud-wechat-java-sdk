@@ -35,14 +35,13 @@ public interface ECloudClient {
     Call<ApiResult<Address>> getAddress(@Body Map<String, Object> request);
 
     /**
-     * 获取联系人信息
+     * 获取通讯录的联系人详情
      */
     @POST("getContact")
     @RateLimit(limit = 10, delay = "300,1500", type = "contactDetail")
-    Call<ApiResult<List<Contact>>> getContact(@Body Map<String,Object> request);
+    Call<ApiResult<List<Contact>>> getContact(@Body Map<String, Object> request);
 
     /*--------------------------login相关-------------------------*/
-
 
 
     /*--------------------------发送消息相关-------------------------*/
@@ -53,6 +52,15 @@ public interface ECloudClient {
     @POST("sendText")
     @RateLimit(limit = 40, limitTime = 60, type = "sendMsg", delay = "200,600")
     Call<ApiResult<SendResult>> sendText(@Body SendRequest sendTextRequest);
+
+    /**
+     * 发送语音消息
+     */
+    @POST("sendVoice")
+    @RateLimit(limit = 20, limitTime = 60, delay = "500,4000", type = "sendMsg")
+    Call<ApiResult<SendResult>> sendVoice(@Body Map<String,Object> request);
+
+
 
     /*--------------------------发送消息相关-------------------------*/
 
