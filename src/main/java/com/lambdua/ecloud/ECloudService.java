@@ -11,7 +11,6 @@ import com.lambdua.ecloud.common.ApiResult;
 import com.lambdua.ecloud.download.GetImgRequest;
 import com.lambdua.ecloud.login.Address;
 import com.lambdua.ecloud.login.Contact;
-import com.lambdua.ecloud.login.ContactRequest;
 import com.lambdua.ecloud.send.SendRequest;
 import com.lambdua.ecloud.send.SendResult;
 import okhttp3.ConnectionPool;
@@ -21,6 +20,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -32,15 +32,14 @@ import java.util.concurrent.TimeUnit;
  **/
 public class ECloudService {
     private String token;
-    // private String baseUrl = "http://59.36.146.193:9899";
     private String baseUrl;
     private ECloudClient client;
     private final ExecutorService executorService;
 
 
-    public ECloudService(String token,String baseUrl) {
+    public ECloudService(String token, String baseUrl) {
         this.token = token;
-        this.baseUrl=baseUrl;
+        this.baseUrl = baseUrl;
         ObjectMapper mapper = defaultObjectMapper();
         OkHttpClient client = defaultClient(token, Duration.ofSeconds(10));
         Retrofit retrofit = defaultRetrofit(client, mapper, baseUrl);
@@ -58,11 +57,18 @@ public class ECloudService {
     }
 
 
-    public List<Contact> getContactList(ContactRequest contactRequest) {
-        return execute(client.getContact(contactRequest)).getData();
+    /**
+     *
+     * @param wId 登录实例id
+     * @param wcId 好友微信id/群id,多个好友/群 以","分隔每次最多支持20个微信/群号,记得本接口随机间隔300ms-1500ms，频繁调用容易导致掉线
+     */
+    public List<Contact> getContactList(String wId, String wcId) {
+        return execute(client.getContact(Map.of("wId",wId,"wcId",wcId))).getData();
     }
 
     /*--------------------------login相关-------------------------*/
+
+
 
 
     /*--------------------------发送消息相关-------------------------*/
@@ -72,6 +78,8 @@ public class ECloudService {
     }
 
     /*--------------------------发送消息相关-------------------------*/
+
+
 
 
 
@@ -136,6 +144,7 @@ public class ECloudService {
     }
 
     /*--------------------------群聊相关-------------------------*/
+
 
 
     public static ObjectMapper defaultObjectMapper() {

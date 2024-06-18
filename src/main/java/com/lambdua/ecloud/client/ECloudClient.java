@@ -21,13 +21,6 @@ public interface ECloudClient {
 
     /*--------------------------login相关-------------------------*/
 
-
-    /**
-     * login
-     */
-    @POST("member/login")
-    Call<ApiResult<ECloudAccount>> login(@Body AccountRequest accountRequest);
-
     /**
      * 初始化通讯录列表
      */
@@ -46,7 +39,7 @@ public interface ECloudClient {
      */
     @POST("getContact")
     @RateLimit(limit = 10, delay = "300,1500", type = "contactDetail")
-    Call<ApiResult<List<Contact>>> getContact(@Body ContactRequest contactRequest);
+    Call<ApiResult<List<Contact>>> getContact(@Body Map<String,Object> request);
 
     /*--------------------------login相关-------------------------*/
 
