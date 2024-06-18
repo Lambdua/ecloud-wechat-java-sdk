@@ -32,7 +32,7 @@ public class MessageManager {
     public void process(MessageResult message) {
         for (MessageProcessor processor : messageProcessors) {
             if (processor.supportMessageProcessor(message.getMessageType())) {
-                processor.process(message.getData());
+                processor.process(message);
             }
         }
     }

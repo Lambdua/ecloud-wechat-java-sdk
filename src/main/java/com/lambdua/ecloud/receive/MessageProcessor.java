@@ -10,7 +10,7 @@ public interface MessageProcessor {
      *
      * @param message
      */
-    void process(DetailReceiveData message);
+    void process(MessageResult message);
 
     boolean supportMessageProcessor(MessageType messageType);
 }

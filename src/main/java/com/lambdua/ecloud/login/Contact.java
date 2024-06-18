@@ -102,7 +102,7 @@ public class Contact {
     /**
      * 电话号码列表
      */
-    // private String phoneNumList;
+    private String phoneNumList;
 
 
 }

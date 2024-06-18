@@ -40,6 +40,21 @@ public class ChatRoomMember {
     private String aliasName;
 
     /**
+     * 国家
+     */
+    private String country;
+
+    /**
+     * 省份
+     */
+    private String province;
+
+    /**
+     * 城市
+     */
+    private String city;
+
+    /**
      * 签名
      */
     private String signature;
@@ -71,6 +86,9 @@ public class ChatRoomMember {
      */
     private String inviterUserName;
 
+
+    private String labelList;
+
     /**
      * v1
      */
@@ -80,4 +98,22 @@ public class ChatRoomMember {
      * v2
      */
     private String v2;
+
+
+    private String chatRoomOwner;
+
+    private Integer memberCount;
+
+    private String notify;
+
+    private String chatRoomMembers;
+
+    private Boolean isManage;
+
+    /**
+     * 姓名备注
+     */
+    private String remark;
+
+
 }
