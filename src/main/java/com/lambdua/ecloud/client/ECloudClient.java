@@ -3,7 +3,8 @@ package com.lambdua.ecloud.client;
 import com.lambdua.ecloud.chat_room.ChatRoomMember;
 import com.lambdua.ecloud.common.ApiResult;
 import com.lambdua.ecloud.download.GetImgRequest;
-import com.lambdua.ecloud.login.*;
+import com.lambdua.ecloud.login.Address;
+import com.lambdua.ecloud.login.Contact;
 import com.lambdua.ecloud.send.SendRequest;
 import com.lambdua.ecloud.send.SendResult;
 import retrofit2.Call;
@@ -18,6 +19,15 @@ import java.util.Map;
  * @date 2024年06月11 10:21
  **/
 public interface ECloudClient {
+    /*---- ecloud账户管理----- */
+
+    /**
+     * 查询账号中在线的微信列表
+     */
+    @POST("queryLoginWx")
+    Call<ApiResult<List<Map<String, String>>>> queryLoginWx();
+
+
 
     /*--------------------------login相关-------------------------*/
 
@@ -58,7 +68,7 @@ public interface ECloudClient {
      */
     @POST("sendVoice")
     @RateLimit(limit = 20, limitTime = 60, delay = "500,4000", type = "sendMsg")
-    Call<ApiResult<SendResult>> sendVoice(@Body Map<String,Object> request);
+    Call<ApiResult<SendResult>> sendVoice(@Body Map<String, Object> request);
 
 
 

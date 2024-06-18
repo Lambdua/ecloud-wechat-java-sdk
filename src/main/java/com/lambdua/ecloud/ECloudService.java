@@ -23,6 +23,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -38,6 +39,12 @@ public class ECloudService {
     private ECloudClient client;
     private final ExecutorService executorService;
 
+    /**
+     * 当前在管理平台上在线的微信号和其对应的实例id
+     * key: wcId,value:wId
+     */
+    public static final Map<String, String> ONLINE_WX_MAP = new HashMap<>();
+
 
     public ECloudService(String token, String baseUrl) {
         this.token = token;
@@ -47,7 +54,22 @@ public class ECloudService {
         Retrofit retrofit = defaultRetrofit(client, mapper, baseUrl);
         this.client = retrofit.create(ECloudClient.class);
         this.executorService = client.dispatcher().executorService();
+        initialOnlineWxMap();
     }
+
+
+    private void initialOnlineWxMap() {
+        List<Map<String, String>> maps = queryLoginWx();
+        for (Map<String, String> map : maps) {
+            ONLINE_WX_MAP.put(map.get("wcId"), map.get("wId"));
+        }
+    }
+
+
+    public List<Map<String, String>> queryLoginWx() {
+        return execute(client.queryLoginWx()).getData();
+    }
+
 
     /*--------------------------login相关-------------------------*/
 
@@ -110,9 +132,8 @@ public class ECloudService {
     }
 
 
-
     /**
-     * @param url 语音url （silk/amr 格式,可以下载消息中的语音返回silk格式）
+     * @param url    语音url （silk/amr 格式,可以下载消息中的语音返回silk格式）
      * @param length 语音时长（回调消息xml数据中的voicelength字段）
      * @return com.lambdua.ecloud.send.SendResult
      * @author liangtao
