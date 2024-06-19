@@ -18,22 +18,13 @@ mvn clean install
 ## 使用方法
 
 1. **初始化SDK**:
-    ```java
-   import com.lambdua.ecloud.ECloudService;
-   ECloudService service = new ECloudService("token","baseUrl");
-    ```
-
-2. **发送文本消息**:
-    ```java
-            service.sendTextMsg(
-                    SendRequest.builder()
-                            .wId(message.getWId())
-                            .wcId(message.getFromUser())
-                            .content("hello word")
-                            .build()
-            );
+```java
+ ECloudService service = new ECloudService("token","baseUrl");
 ```
-
+2. **发送文本消息**:
+```java
+service.sendTextMsg(SendRequest.builder().wId(message.getWId()).wcId(message.getFromUser()).content("hello word").build());
+```
 ## 文档
 
 详细的API文档，请访问 [Ecloud WeChat API Docs](https://wkteam.cn/).
