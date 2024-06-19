@@ -131,71 +131,16 @@ public class ECloudService {
 
     /*--------------------------发送消息相关-------------------------*/
 
-    public MessageResult sendTextMsg(SendRequest request) {
+    public SendResult sendTextMsg(SendRequest request) {
         ApiResult<SendResult> apiResult = execute(client.sendText(request));
         statusCheck(apiResult, "发送文本消息失败");
-        String currentWcId = getWcIdByWId(request.wId());
-        SendResult result = apiResult.getData();
-        MessageResult msg = new MessageResult();
-        DetailReceiveData detail = new DetailReceiveData();
-        msg.setWcId(currentWcId);
-        if (request.wcId().contains("@chatroom")) {
-            msg.setMessageType(MessageType.GROUP_TEXT);
-            //群聊消息的,接收者是群id和自己
-            detail.setFromGroup(request.wcId());
-            detail.setToUser(currentWcId);
-        } else {
-            msg.setMessageType(MessageType.PRIVATE_TEXT);
-            detail.setToUser(request.wcId());
-        }
-        msg.setData(detail);
-        detail.setSelf(true);
-        detail.setContent(request.content());
-        //发送者就是当前微信号
-        detail.setFromUser(currentWcId);
-        detail.setMsgId(result.msgId());
-        detail.setNewMsgId(result.newMsgId());
-        detail.setTimestamp(result.createTime() == 0L ? System.currentTimeMillis() : result.createTime());
-        detail.setWId(request.wId());
-        detail.setType(result.type());
-        detail.setUrl(request.path());
-        if (request.at() != null) {
-            String[] at = request.at().split(",");
-            detail.setAtList(List.of(at));
-        }
-        return msg;
+        return apiResult.getData();
     }
 
     public SendResult setImageMsg(String wId, String wcId, String url) {
         ApiResult<SendResult> apiResult = execute(client.sendImg(Map.of("wId", wId, "wcId", wcId, "content", url)));
         statusCheck(apiResult, "发送图片消息失败");
         return apiResult.getData();
-        // MessageResult msg = new MessageResult();
-        // DetailReceiveData detail = new DetailReceiveData();
-        // String currentWcId = getWcIdByWId(wId);
-        // msg.setWcId(currentWcId);
-        // if (wcId.contains("@chatroom")) {
-        //     msg.setMessageType(MessageType.GROUP_IMAGE);
-        //     //群聊消息的,接收者是群id和自己
-        //     detail.setFromGroup(wcId);
-        //     detail.setToUser(currentWcId);
-        // } else {
-        //     msg.setMessageType(MessageType.PRIVATE_IMAGE);
-        //     detail.setToUser(wcId);
-        // }
-        // msg.setData(detail);
-        // detail.setSelf(true);
-        // detail.setContent(url);
-        // //根据url base64
-        // // detail.setImg();
-        // detail.setFromUser(currentWcId);
-        // detail.setMsgId(result.msgId());
-        // detail.setNewMsgId(result.newMsgId());
-        // detail.setTimestamp(result.createTime() == 0L ? System.currentTimeMillis() : result.createTime());
-        // detail.setWId(wId);
-        // detail.setType(result.type());
-        // detail.setUrl(url);
-        // return msg;
     }
 
 
