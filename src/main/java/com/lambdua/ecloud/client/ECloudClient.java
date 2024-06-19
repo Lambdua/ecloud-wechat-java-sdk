@@ -5,6 +5,7 @@ import com.lambdua.ecloud.common.ApiResult;
 import com.lambdua.ecloud.download.GetImgRequest;
 import com.lambdua.ecloud.login.Address;
 import com.lambdua.ecloud.login.Contact;
+import com.lambdua.ecloud.login.WeChat;
 import com.lambdua.ecloud.send.SendRequest;
 import com.lambdua.ecloud.send.SendResult;
 import retrofit2.Call;
@@ -26,6 +27,14 @@ public interface ECloudClient {
      */
     @POST("queryLoginWx")
     Call<ApiResult<List<Map<String, String>>>> queryLoginWx();
+
+    /**
+     * 执行微信登录,以登录的可以使用这个查询微信账户信息
+     */
+    @POST("getIPadLoginInfo")
+    Call<ApiResult<WeChat>> getIPadLoginInfo(@Body Map<String, Object> request);
+
+
 
 
 

@@ -11,6 +11,7 @@ import com.lambdua.ecloud.common.ApiResult;
 import com.lambdua.ecloud.download.GetImgRequest;
 import com.lambdua.ecloud.login.Address;
 import com.lambdua.ecloud.login.Contact;
+import com.lambdua.ecloud.login.WeChat;
 import com.lambdua.ecloud.receive.DetailReceiveData;
 import com.lambdua.ecloud.receive.MessageResult;
 import com.lambdua.ecloud.receive.MessageType;
@@ -78,6 +79,13 @@ public class ECloudService {
         execute(client.initAddress(Map.of("wId", wId)));
         //2. 获取列表
         return execute(client.getAddress(Map.of("wId", wId))).getData();
+    }
+
+    /**
+     * 获取当前登录实例微信号的详细信息
+     */
+    public WeChat getIPadLoginInfo(String wId) {
+        return execute(client.getIPadLoginInfo(Map.of("wId", wId))).getData();
     }
 
 
