@@ -232,9 +232,29 @@ public interface ECloudClient {
 
     /*--------------------------好友相关-------------------------*/
 
+    /**
+     * 朋友圈点赞
+     */
+    @POST("snsPraise")
+    Call<ApiResult<Void>> snsPraise(@Body Map<String, Object> request);
 
+    /**
+     * 取消点赞
+     */
+    @POST("snsCancelPraise")
+    Call<ApiResult<Void>> snsCancelPraise(@Body Map<String, Object> request);
 
+    /**
+     * 朋友圈评论
+     */
+    @POST("snsComment")
+    Call<ApiResult<Void>> snsComment(@Body Map<String, Object> request);
 
+    /**
+     * 删除朋友圈评论
+     */
+    @POST("snsCommentDel")
+    Call<ApiResult<Void>> snsCommentDel(@Body Map<String, Object> request);
 
 
 
