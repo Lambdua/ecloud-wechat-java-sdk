@@ -1,6 +1,8 @@
 package com.lambdua.ecloud.login;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 /**
  * 登录的微信账号信息
@@ -9,11 +11,13 @@ import lombok.Data;
  * @date 2024年06月19 10:49
  **/
 @Data
+@FieldNameConstants
 public class WeChat {
 
     /**
      * 微信实例id
      */
+    @JsonProperty("wId")
     private String wId;
 
     /**
@@ -71,6 +75,7 @@ public class WeChat {
     /**
      * 手机上显示的微信号(用户若手机改变微信号，本值会变)
      */
+    @JsonProperty("wAccount")
     private String wAccount;
 
     /**
