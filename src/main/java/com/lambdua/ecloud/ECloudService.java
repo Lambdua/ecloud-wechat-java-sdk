@@ -11,6 +11,7 @@ import com.lambdua.ecloud.common.ApiServerException;
 import com.lambdua.ecloud.common.ApiResult;
 import com.lambdua.ecloud.common.ApiExecuteException;
 import com.lambdua.ecloud.download.GetImgRequest;
+import com.lambdua.ecloud.friend.SearchUser;
 import com.lambdua.ecloud.login.Address;
 import com.lambdua.ecloud.login.Contact;
 import com.lambdua.ecloud.login.WeChat;
@@ -253,7 +254,7 @@ public class ECloudService {
      * 下载表情包
      */
     public String downloadEmoji(String wId, String msgId, String content) {
-        ApiResult<Map<String, Object>> execute = execute(client.getMsgEmoji(Map.of( "wId", wId, "msgId", msgId, "content", content )));
+        ApiResult<Map<String, Object>> execute = execute(client.getMsgEmoji(Map.of("wId", wId, "msgId", msgId, "content", content)));
         statusCheck(execute, "下载表情包失败");
         return (String) execute.getData().get("url");
     }
@@ -262,6 +263,72 @@ public class ECloudService {
 
 
     /*--------------------------下载相关-------------------------*/
+
+
+    /**
+     * 微信用户搜索
+     */
+    public SearchUser searchUser(String wId, String searchPhoneOrWcId) {
+        ApiResult<SearchUser> result = execute(client.searchUser(Map.of("wId", wId, "wcId", searchPhoneOrWcId)));
+        statusCheck(result, "微信用户搜索失败");
+        return result.getData();
+    }
+
+    /**
+     * 添加好友
+     *
+     * @param v1     v1 从搜索好友接口获取
+     * @param v2     v2 从搜索好友接口获取
+     * @param type   3 ：微信号搜索 4 ：QQ好友  8 ：来自群聊  15：手机号
+     * @param verify 验证消息
+     */
+    public void addUser(String wId, String v1, String v2, Integer type, String verify) {
+        ApiResult<Void> apiResult = execute(client.addUser(Map.of(
+                "wId", wId,
+                "v1", v1,
+                "v2", v2,
+                "type", type,
+                "verify", verify
+        )));
+        statusCheck(apiResult, "添加好友失败");
+    }
+
+    /**
+     * 修改好友备注
+     */
+    public void modifyRemark(String wId, String wcId, String remark) {
+        ApiResult<Void> apiResult = execute(client.modifyRemark(Map.of(
+                "wId", wId,
+                "wcId", wcId,
+                "remark", remark
+        )));
+        statusCheck(apiResult, "修改好友备注失败");
+    }
+
+    /**
+     * 修改个人头像
+     * @param path 图片url链接
+     */
+    public void sendHeadImage(String wId, String path) {
+        ApiResult<Void> apiResult = execute(client.sendHeadImage(Map.of(
+                "wId", wId,
+                "path", path
+        )));
+        statusCheck(apiResult, "修改个人头像失败");
+    }
+
+    /**
+     * 同意添加好友
+     */
+    public void acceptUser(String wId, String v1, String v2, Integer type) {
+        ApiResult<Void> apiResult = execute(client.acceptUser(Map.of(
+                "wId", wId,
+                "v1", v1,
+                "v2", v2,
+                "type", type
+        )));
+        statusCheck(apiResult, "同意添加好友失败");
+    }
 
 
     /*--------------------------群聊相关-------------------------*/
@@ -282,6 +349,7 @@ public class ECloudService {
     }
 
     /**
+     * 接受群聊邀请
      * @param wId 登录实例标识
      * @param url 原始 url，好友发送的入群邀请卡片信息链接(回调中取)
      * @return 成功失败
@@ -292,6 +360,31 @@ public class ECloudService {
                 "url", url
         ))).isSuccess();
     }
+
+    /**
+     * 修改我在群里的昵称
+     */
+    public void updateIInChatRoomNickName(String wId, String chatRoomId, String nickName) {
+        ApiResult<Void> apiResult = execute(client.updateIInChatRoomNickName(Map.of(
+                "wId", wId,
+                "chatRoomId", chatRoomId,
+                "nickName", nickName
+        )));
+        statusCheck(apiResult, "修改昵称失败");
+    }
+
+    /**
+     * 申请添加群成员为好友
+     */
+    public void addRoomMemberFriend(String wId, String chatRoomId, String memberWcId) {
+        ApiResult<Void> apiResult = execute(client.addRoomMemberFriend(Map.of(
+                "wId", wId,
+                "chatRoomId", chatRoomId,
+                "memberWcId", memberWcId
+        )));
+        statusCheck(apiResult, "申请添加群成员为好友失败");
+    }
+
 
     /**
      * {
