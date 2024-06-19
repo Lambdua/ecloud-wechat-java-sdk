@@ -25,15 +25,13 @@ mvn clean install
 
 2. **发送文本消息**:
     ```java
-
-service.sendTextMsg(
-SendRequest.builder()
-.wId(message.getWId())
-.wcId(message.getFromUser())
-.content("hello word")
-.build()
-);
-
+            service.sendTextMsg(
+                    SendRequest.builder()
+                            .wId(message.getWId())
+                            .wcId(message.getFromUser())
+                            .content("hello word")
+                            .build()
+            );
 ```
 
 ## 文档
