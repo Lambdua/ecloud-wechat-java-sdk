@@ -79,6 +79,42 @@ public interface ECloudClient {
     @RateLimit(limit = 20, limitTime = 60, delay = "500,4000", type = "sendMsg")
     Call<ApiResult<SendResult>> sendVoice(@Body Map<String, Object> request);
 
+    /**
+     * 发送图片消息 sendImg接口返回的data中没有msgId相关信息
+     */
+    @POST("sendImg2")
+    @RateLimit(type = "sendMsg")
+    Call<ApiResult<SendResult>> sendImg(@Body Map<String, Object> request);
+
+    /**
+     * 发送链接消息
+     */
+    @POST("sendUrl")
+    @RateLimit(type = "sendMsg")
+    Call<ApiResult<SendResult>> sendUrl(@Body Map<String, Object> request);
+
+    /**
+     * 发送名片消息
+     */
+    @POST("sendNameCard")
+    @RateLimit(type = "sendMsg")
+    Call<ApiResult<SendResult>> sendNameCard(@Body Map<String, Object> request);
+
+    /**
+     * 发送表情包
+     */
+    @POST("sendEmoji")
+    @RateLimit(type = "sendMsg")
+    Call<ApiResult<SendResult>> sendEmoji(@Body Map<String, Object> request);
+
+    /**
+     * 撤回消息
+     */
+    @POST("revokeMsg")
+    @RateLimit(limit = 10, limitTime = 120, delay = "1000,2000", type = "revokeMsg")
+    Call<ApiResult<Void>> revokeMsg(@Body Map<String, Object> request);
+
+
 
 
     /*--------------------------发送消息相关-------------------------*/
@@ -92,6 +128,20 @@ public interface ECloudClient {
     @POST("getMsgImg")
     @RateLimit(limit = 10, limitTime = 60, delay = "500,4000", type = "download")
     Call<ApiResult<Map<String, Object>>> getMsgImg(@Body GetImgRequest getImgRequest);
+
+    /**
+     * 下载语音
+     */
+    @POST("getMsgVoice")
+    @RateLimit(type = "download")
+    Call<ApiResult<Map<String, Object>>> getMsgVoice(@Body Map<String, Object> request);
+
+    /**
+     * 下载表情包
+     */
+    @POST("getMsgEmoji")
+    @RateLimit(type = "download")
+    Call<ApiResult<Map<String, Object>>> getMsgEmoji(@Body Map<String, Object> request);
 
 
     /*--------------------------下载相关-------------------------*/

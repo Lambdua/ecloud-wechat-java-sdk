@@ -44,7 +44,7 @@ public class RateLimitInterceptor implements Interceptor {
                 randomSleep(rateLimit);
                 return chain.proceed(chain.request());
             } else {
-                throw new RateLimitException("Rate limit exceeded, please try again later");
+                throw new RateLimitException("type:"+key+" , Rate limit exceeded, please try again later");
             }
         }
     }

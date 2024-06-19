@@ -7,7 +7,9 @@ import com.lambdua.ecloud.chat_room.ChatRoomMember;
 import com.lambdua.ecloud.client.AuthenticationInterceptor;
 import com.lambdua.ecloud.client.ECloudClient;
 import com.lambdua.ecloud.client.RateLimitInterceptor;
+import com.lambdua.ecloud.common.ApiServerException;
 import com.lambdua.ecloud.common.ApiResult;
+import com.lambdua.ecloud.common.ApiExecuteException;
 import com.lambdua.ecloud.download.GetImgRequest;
 import com.lambdua.ecloud.login.Address;
 import com.lambdua.ecloud.login.Contact;
@@ -17,6 +19,7 @@ import com.lambdua.ecloud.receive.MessageResult;
 import com.lambdua.ecloud.receive.MessageType;
 import com.lambdua.ecloud.send.SendRequest;
 import com.lambdua.ecloud.send.SendResult;
+import lombok.NonNull;
 import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
 import retrofit2.Call;
@@ -46,6 +49,18 @@ public class ECloudService {
      */
     public static final Map<String, String> ONLINE_WX_MAP = new HashMap<>();
 
+    /**
+     * 根据value: wId 获取key: wcId
+     */
+    @NonNull
+    public static String getWcIdByWId(String wId) {
+        return ONLINE_WX_MAP.entrySet().stream()
+                .filter(entry -> entry.getValue().equals(wId))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(null);
+    }
+
 
     public ECloudService(String token, String baseUrl) {
         this.token = token;
@@ -67,8 +82,13 @@ public class ECloudService {
     }
 
 
+    /**
+     * 查询当前ecloud平台在线的wechat账号
+     */
     public List<Map<String, String>> queryLoginWx() {
-        return execute(client.queryLoginWx()).getData();
+        ApiResult<List<Map<String, String>>> result = execute(client.queryLoginWx());
+        statusCheck(result, "查询当前ecloud平台在线的wechat账号失败");
+        return result.getData();
     }
 
 
@@ -76,16 +96,21 @@ public class ECloudService {
 
     public Address getAddress(String wId) {
         //1. 初始化
-        execute(client.initAddress(Map.of("wId", wId)));
+        ApiResult<Void> initialStatus = execute(client.initAddress(Map.of("wId", wId)));
+        statusCheck(initialStatus, "初始化通讯录列表失败");
         //2. 获取列表
-        return execute(client.getAddress(Map.of("wId", wId))).getData();
+        ApiResult<Address> result = execute(client.getAddress(Map.of("wId", wId)));
+        statusCheck(result, "获取通讯录列表失败");
+        return result.getData();
     }
 
     /**
      * 获取当前登录实例微信号的详细信息
      */
     public WeChat getIPadLoginInfo(String wId) {
-        return execute(client.getIPadLoginInfo(Map.of("wId", wId))).getData();
+        ApiResult<WeChat> result = execute(client.getIPadLoginInfo(Map.of("wId", wId)));
+        statusCheck(result, "获取当前登录实例微信号的详细信息失败");
+        return result.getData();
     }
 
 
@@ -94,7 +119,9 @@ public class ECloudService {
      * @param wcId 好友微信id/群id,多个好友/群 以","分隔每次最多支持20个微信/群号,记得本接口随机间隔300ms-1500ms，频繁调用容易导致掉线
      */
     public List<Contact> getContactList(String wId, String wcId) {
-        return execute(client.getContact(Map.of("wId", wId, "wcId", wcId))).getData();
+        ApiResult<List<Contact>> result = execute(client.getContact(Map.of("wId", wId, "wcId", wcId)));
+        statusCheck(result, "获取通讯录的联系人详情失败");
+        return result.getData();
     }
 
     /*--------------------------login相关-------------------------*/
@@ -104,20 +131,19 @@ public class ECloudService {
 
     /*--------------------------发送消息相关-------------------------*/
 
-    public SendResult sendTextMsg(SendRequest sendRequest) {
-        return execute(client.sendText(sendRequest)).getData();
-    }
-
-    /**
-     * 发送的消息转换为接收的消息
-     */
-    public MessageResult sendResultToMessageResult(SendResult result, SendRequest request) {
+    public MessageResult sendTextMsg(SendRequest request) {
+        ApiResult<SendResult> apiResult = execute(client.sendText(request));
+        statusCheck(apiResult, "发送文本消息失败");
+        String currentWcId = getWcIdByWId(request.wId());
+        SendResult result = apiResult.getData();
         MessageResult msg = new MessageResult();
         DetailReceiveData detail = new DetailReceiveData();
-        msg.setWcId(result.wcId());
+        msg.setWcId(currentWcId);
         if (request.wcId().contains("@chatroom")) {
             msg.setMessageType(MessageType.GROUP_TEXT);
+            //群聊消息的,接收者是群id和自己
             detail.setFromGroup(request.wcId());
+            detail.setToUser(currentWcId);
         } else {
             msg.setMessageType(MessageType.PRIVATE_TEXT);
             detail.setToUser(request.wcId());
@@ -125,10 +151,11 @@ public class ECloudService {
         msg.setData(detail);
         detail.setSelf(true);
         detail.setContent(request.content());
-        detail.setFromUser(result.wcId());
+        //发送者就是当前微信号
+        detail.setFromUser(currentWcId);
         detail.setMsgId(result.msgId());
         detail.setNewMsgId(result.newMsgId());
-        detail.setTimestamp(result.createTime());
+        detail.setTimestamp(result.createTime() == 0L ? System.currentTimeMillis() : result.createTime());
         detail.setWId(request.wId());
         detail.setType(result.type());
         detail.setUrl(request.path());
@@ -137,6 +164,38 @@ public class ECloudService {
             detail.setAtList(List.of(at));
         }
         return msg;
+    }
+
+    public SendResult setImageMsg(String wId, String wcId, String url) {
+        ApiResult<SendResult> apiResult = execute(client.sendImg(Map.of("wId", wId, "wcId", wcId, "content", url)));
+        statusCheck(apiResult, "发送图片消息失败");
+        return apiResult.getData();
+        // MessageResult msg = new MessageResult();
+        // DetailReceiveData detail = new DetailReceiveData();
+        // String currentWcId = getWcIdByWId(wId);
+        // msg.setWcId(currentWcId);
+        // if (wcId.contains("@chatroom")) {
+        //     msg.setMessageType(MessageType.GROUP_IMAGE);
+        //     //群聊消息的,接收者是群id和自己
+        //     detail.setFromGroup(wcId);
+        //     detail.setToUser(currentWcId);
+        // } else {
+        //     msg.setMessageType(MessageType.PRIVATE_IMAGE);
+        //     detail.setToUser(wcId);
+        // }
+        // msg.setData(detail);
+        // detail.setSelf(true);
+        // detail.setContent(url);
+        // //根据url base64
+        // // detail.setImg();
+        // detail.setFromUser(currentWcId);
+        // detail.setMsgId(result.msgId());
+        // detail.setNewMsgId(result.newMsgId());
+        // detail.setTimestamp(result.createTime() == 0L ? System.currentTimeMillis() : result.createTime());
+        // detail.setWId(wId);
+        // detail.setType(result.type());
+        // detail.setUrl(url);
+        // return msg;
     }
 
 
@@ -148,13 +207,70 @@ public class ECloudService {
      * @date 2024/6/18
      **/
     public SendResult sendVoiceMsg(String wId, String wcId, String url, Integer length) {
-        return execute(client.sendVoice(Map.of(
+        ApiResult<SendResult> apiResult = execute(client.sendVoice(Map.of(
                 "wId", wId,
                 "wcId", wcId,
                 "content", url,
                 "length", length
-        ))).getData();
+        )));
+        statusCheck(apiResult, "发送语音消息失败");
+        return apiResult.getData();
+    }
 
+
+    public SendResult sendUrlMsg(String wId, String wcId, String title, String description, String url, String thumbUrl) {
+        ApiResult<SendResult> apiResult = execute(client.sendUrl(Map.of(
+                "wId", wId,
+                "wcId", wcId,
+                "title", title,
+                "description", description,
+                "thumbUrl", thumbUrl,
+                "url", url
+        )));
+        statusCheck(apiResult, "发送链接消息失败");
+        return apiResult.getData();
+    }
+
+
+    /**
+     * @param nameCardId 要发送的名片id
+     */
+    public SendResult sendNameCard(String wId, String wcId, String nameCardId) {
+        ApiResult<SendResult> apiResult = execute(client.sendNameCard(Map.of(
+                "wId", wId,
+                "wcId", wcId,
+                "nameCardId", nameCardId
+        )));
+        statusCheck(apiResult, "发送名片消息失败");
+        return apiResult.getData();
+    }
+
+    /**
+     * 发送表情包
+     */
+    public SendResult sendEmoji(String wId, String wcId, String imageMd5, String imgSize) {
+        ApiResult<SendResult> apiResult = execute(client.sendEmoji(Map.of(
+                "wId", wId,
+                "wcId", wcId,
+                "imageMd5", imageMd5,
+                "imgSize", imgSize
+        )));
+        statusCheck(apiResult, "发送表情包消息失败");
+        return apiResult.getData();
+    }
+
+    /**
+     * 撤回msg
+     */
+    public void revokeMsg(String wId, String wcId, Long msgId, Long newMsgId, Long createTime) {
+        ApiResult<Void> apiResult = execute(client.revokeMsg(Map.of(
+                "wId", wId,
+                "wcId", wcId,
+                "msgId", msgId,
+                "newMsgId", newMsgId,
+                "createTime", createTime
+        )));
+        statusCheck(apiResult, "撤回消息失败");
     }
     /*--------------------------发送消息相关-------------------------*/
 
@@ -169,8 +285,35 @@ public class ECloudService {
      */
     public String downloadMsgImage(GetImgRequest imgRequest) {
         ApiResult<Map<String, Object>> execute = execute(client.getMsgImg(imgRequest));
+        statusCheck(execute, "下载图片失败");
         return (String) execute.getData().get("url");
     }
+
+    /**
+     * 下载语音
+     */
+    public String downloadMsgVoice(String wId, String wcId, String msgId, Integer length, Integer bufId) {
+        ApiResult<Map<String, Object>> execute = execute(client.getMsgVoice(Map.of(
+                "wId", wId,
+                "fromUser", wcId,
+                "msgId", msgId,
+                "length", length,
+                "bufId", bufId
+        )));
+        statusCheck(execute, "下载语音失败");
+        return (String) execute.getData().get("url");
+    }
+
+    /**
+     * 下载表情包
+     */
+    public String downloadEmoji(String wId, String msgId, String content) {
+        ApiResult<Map<String, Object>> execute = execute(client.getMsgEmoji(Map.of( "wId", wId, "msgId", msgId, "content", content )));
+        statusCheck(execute, "下载表情包失败");
+        return (String) execute.getData().get("url");
+    }
+
+
 
 
     /*--------------------------下载相关-------------------------*/
@@ -251,13 +394,15 @@ public class ECloudService {
 
     private <T> ApiResult<T> execute(Call<ApiResult<T>> call) {
         try {
-            ApiResult<T> body = call.execute().body();
-            if (!body.isSuccess()) {
-                throw new RuntimeException(body.getMessage());
-            }
-            return body;
+            return call.execute().body();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new ApiServerException("ecloud 接口调用异常", e);
+        }
+    }
+
+    private <T> void statusCheck(ApiResult<T> result, String businessMsg) {
+        if (!result.isSuccess()) {
+            throw new ApiExecuteException(businessMsg + ":+" + result.getMessage());
         }
     }
 
