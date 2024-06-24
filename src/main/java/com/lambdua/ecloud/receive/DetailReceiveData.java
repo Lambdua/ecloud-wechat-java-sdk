@@ -212,4 +212,7 @@ public class DetailReceiveData {
     private String sourceUser;
 
     private String v1;
+
+    private String v2;
+    private String scene;
 }
